@@ -54,7 +54,7 @@ auto make_ik_cost_fn(geometry_msgs::msg::Pose pose,
 // Create a solution test function from frame tests and goals
 using SolutionTestFn = std::function<bool(std::vector<double> const& active_positions)>;
 
-auto make_is_solution_test_fn(std::vector<FrameTestFn> frame_tests,
+auto make_is_solution_test_fn(Robot const& robot, std::vector<FrameTestFn> frame_tests,
                               std::vector<Goal> goals,
                               double cost_threshold,
                               FkFn fk) -> SolutionTestFn;

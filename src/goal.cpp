@@ -12,6 +12,8 @@
 #include <optional>
 #include <vector>
 
+#include <fmt/color.h>
+
 namespace pick_ik {
 
 double linear_distance(Eigen::Isometry3d const& frame_1, Eigen::Isometry3d const& frame_2) {
@@ -160,7 +162,7 @@ auto make_ik_cost_fn(geometry_msgs::msg::Pose pose,
     };
 }
 
-auto make_is_solution_test_fn(std::vector<FrameTestFn> frame_tests,
+auto make_is_solution_test_fn(Robot const& robot, std::vector<FrameTestFn> frame_tests,
                               std::vector<Goal> goals,
                               double cost_threshold,
                               FkFn fk) -> SolutionTestFn {
@@ -177,6 +179,22 @@ auto make_is_solution_test_fn(std::vector<FrameTestFn> frame_tests,
         for (auto const& goal : goals) {
             auto const cost = goal.eval(active_positions) * std::pow(goal.weight, 2);
             if (cost >= cost_threshold_sq) {
+                return false;
+            }
+        }
+
+        // Check the solutions when true is to be returned
+        // Prints on equality, solutions with joint values exactly at min/max limits are returned
+        // Equality means in range, but it maybe good to highlight
+        for (size_t i = 0; i < active_positions.size(); ++i) {
+            if(active_positions[i] <= robot.variables[i].clip_min || active_positions[i] >= robot.variables[i].clip_max){
+                fmt::print(
+                    "Active position: Joint {}: value {} is out of range. clip_min: {}, clip_max: {}\n",
+                    i + 1,
+                    active_positions[i],
+                    robot.variables[i].clip_min,
+                    robot.variables[i].clip_max);
+
                 return false;
             }
         }
