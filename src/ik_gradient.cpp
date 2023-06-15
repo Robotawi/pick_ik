@@ -11,8 +11,22 @@
 
 namespace pick_ik {
 
-GradientIk GradientIk::from(std::vector<double> const& initial_guess, CostFn const& cost_fn) {
+GradientIk GradientIk::from(Robot const& robot, std::vector<double> const& initial_guess, CostFn const& cost_fn) {
     auto const initial_cost = cost_fn(initial_guess);
+    for (size_t i = 0; i < initial_guess.size(); ++i)
+    {   
+        // Prints when (equality) is checked. It means initial guess values exactly at min/max joint limits.
+        // This is probably causing the out of range proposals in the next steps. 
+        if(initial_guess[i] <= robot.variables[i].clip_min || initial_guess[i] >= robot.variables[i].clip_max){
+            fmt::print(
+                "Initial guess: Joint {}: value {} is out of range. clip_min: {}, clip_max: {}\n",
+                i + 1,
+                initial_guess[i],
+                robot.variables[i].clip_min,
+                robot.variables[i].clip_max);
+        }
+    }
+    
     return GradientIk{std::vector<double>(initial_guess.size(), 0.0),
                       initial_guess,
                       initial_guess,
@@ -137,7 +151,7 @@ auto ik_gradient(std::vector<double> const& initial_guess,
     }
 
     assert(robot.variables.size() == initial_guess.size());
-    auto ik = GradientIk::from(initial_guess, cost_fn);
+    auto ik = GradientIk::from(robot, initial_guess, cost_fn);
 
     // Main loop
     int num_iterations = 0;

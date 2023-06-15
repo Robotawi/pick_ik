@@ -30,7 +30,7 @@ struct GradientIk {
     double local_cost;
     double best_cost;
 
-    static GradientIk from(std::vector<double> const& initial_guess, CostFn const& cost_fn);
+    static GradientIk from(Robot const& robot, std::vector<double> const& initial_guess, CostFn const& cost_fn);
 };
 
 /// Performs one step of gradient descent.

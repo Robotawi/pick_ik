@@ -68,7 +68,7 @@ void MemeticIk::gradientDescent(size_t const i,
                                 CostFn const& cost_fn,
                                 GradientIkParams const& gd_params) {
     auto& individual = population_[i];
-    auto local_ik = GradientIk::from(individual.genes, cost_fn);
+    auto local_ik = GradientIk::from(robot, individual.genes, cost_fn);
 
     int num_iterations = 0;
     double previous_cost = 0;
