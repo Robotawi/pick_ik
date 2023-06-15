@@ -51,6 +51,8 @@ auto step(GradientIk& self, Robot const& robot, CostFn const& cost_fn, double st
                 self.working[i],
                 robot.variables[i].clip_min,
                 robot.variables[i].clip_max);
+
+                std::clamp(self.working[i], robot.variables[i].clip_min, robot.variables[i].clip_max);
         }
         double const p1 = cost_fn(self.working);
 
@@ -64,6 +66,8 @@ auto step(GradientIk& self, Robot const& robot, CostFn const& cost_fn, double st
                 self.working[i],
                 robot.variables[i].clip_min,
                 robot.variables[i].clip_max);
+
+                std::clamp(self.working[i], robot.variables[i].clip_min, robot.variables[i].clip_max);
         }
         double const p3 = cost_fn(self.working);
 
