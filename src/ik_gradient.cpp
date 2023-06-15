@@ -29,10 +29,28 @@ auto step(GradientIk& self, Robot const& robot, CostFn const& cost_fn, double st
     for (size_t i = 0; i < count; ++i) {
         // test negative displacement
         self.working[i] = self.local[i] - step_size;
+        if (self.working[i] < robot.variables[i].clip_min ||
+            self.working[i] > robot.variables[i].clip_max) {
+            fmt::print(
+                "Negative displacement: Joint {}: value {} is out of range. clip_min: {}, clip_max: {}\n",
+                i + 1,
+                self.working[i],
+                robot.variables[i].clip_min,
+                robot.variables[i].clip_max);
+        }
         double const p1 = cost_fn(self.working);
 
         // test positive displacement
         self.working[i] = self.local[i] + step_size;
+        if (self.working[i] < robot.variables[i].clip_min ||
+            self.working[i] > robot.variables[i].clip_max) {
+            fmt::print(
+                "Positive displacement: Joint {}: value {} is out of range. clip_min: {}, clip_max: {}\n",
+                i + 1,
+                self.working[i],
+                robot.variables[i].clip_min,
+                robot.variables[i].clip_max);
+        }
         double const p3 = cost_fn(self.working);
 
         // reset self.working
@@ -78,9 +96,21 @@ auto step(GradientIk& self, Robot const& robot, CostFn const& cost_fn, double st
     // apply optimization step
     // (move along gradient direction by estimated step size)
     for (size_t i = 0; i < count; ++i) {
-        self.working[i] = std::clamp(self.local[i] - self.gradient[i] * joint_diff,
-                                     robot.variables[i].clip_min,
-                                     robot.variables[i].clip_max);
+        auto new_joint_value = self.local[i] - self.gradient[i] * joint_diff;
+
+        // Check new joint values before clamping
+        if (new_joint_value < robot.variables[i].clip_min ||
+            new_joint_value > robot.variables[i].clip_max) {
+            fmt::print(
+                "Apply optimization step: Before clamping, Joint {}: value {} is out of range. clip_min: {}, clip_max: {}\n",
+                i + 1,
+                new_joint_value,
+                robot.variables[i].clip_min,
+                robot.variables[i].clip_max);
+        }
+
+        self.working[i] =
+            std::clamp(new_joint_value, robot.variables[i].clip_min, robot.variables[i].clip_max);
     }
 
     // Always accept the solution and continue
